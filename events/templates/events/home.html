@@ -1,0 +1,351 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>PlayNear | Find Your Game</title>
+
+    <meta name="description" content="Find nearby sports games, meet players, and get in the game with PlayNear.">
+
+    <link rel="stylesheet" href="{% static 'events/style.css' %}">
+
+    <style>
+        .event-rating {
+            margin: 12px 0;
+            padding: 10px 12px;
+            background: #f0f7e9;
+            border-radius: 10px;
+            color: #26362c;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .event-rating .stars {
+            color: #e5a000;
+            font-size: 17px;
+            letter-spacing: 2px;
+        }
+
+        .event-rating .rating-number {
+            color: #18231d;
+            margin-left: 5px;
+        }
+
+        .event-rating .review-total {
+            color: #647267;
+            font-weight: 400;
+            margin-left: 5px;
+        }
+
+        .event-rating.not-rated {
+            color: #647267;
+            font-weight: 400;
+        }
+    </style>
+</head>
+
+<body>
+
+    {% include "events/navbar.html" %}
+
+    <!-- HERO SECTION -->
+    <section class="hero">
+        <div class="hero-content">
+
+            <p class="hero-eyebrow">
+                YOUR GAME. YOUR PEOPLE. YOUR CITY.
+            </p>
+
+            <h1>
+                Find Your Game.<br>
+                Meet Your People.
+            </h1>
+
+            <p class="hero-description">
+                Discover sports events happening near you.
+                Connect with players and enjoy the game together.
+            </p>
+
+            <div class="hero-buttons">
+                <a href="#find-games" class="btn btn-green">
+                    Explore Games
+                </a>
+
+                <a href="{% url 'create_event' %}" class="btn btn-outline">
+                    Create an Event
+                </a>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- GAMES SECTION -->
+    <section class="games-section" id="find-games">
+
+        <div class="section-heading">
+
+            <p class="section-eyebrow">
+                DISCOVER YOUR NEXT GAME
+            </p>
+
+            <h2>Find Games Near You</h2>
+
+            <p>Join local games and meet new teammates.</p>
+
+            <a href="{% url 'create_event' %}" class="btn btn-green">
+                + Create Event
+            </a>
+
+        </div>
+
+        <div class="games-container">
+
+            <!-- SEARCH -->
+            <div class="search-container">
+
+                <input
+                    type="text"
+                    id="searchInput"
+                    placeholder="Search sport or game name"
+                    aria-label="Search sport or game name"
+                >
+
+                <input
+                    type="text"
+                    id="locationInput"
+                    placeholder="Search location"
+                    aria-label="Search location"
+                >
+
+                <button
+                    type="button"
+                    id="searchButton"
+                    class="btn btn-green"
+                >
+                    Search
+                </button>
+
+            </div>
+
+            <!-- SPORTS FILTERS -->
+            <div class="sport-filters">
+
+                <button class="filter-btn active" data-sport="All Sports">
+                    All Sports
+                </button>
+
+                <button class="filter-btn" data-sport="Football">
+                    Football
+                </button>
+
+                <button class="filter-btn" data-sport="Cricket">
+                    Cricket
+                </button>
+
+                <button class="filter-btn" data-sport="Basketball">
+                    Basketball
+                </button>
+
+                <button class="filter-btn" data-sport="Badminton">
+                    Badminton
+                </button>
+
+            </div>
+
+            <!-- EVENTS -->
+            <div class="event-grid" id="eventGrid">
+
+                {% for event in events %}
+
+                    <div
+                        class="event-card"
+                        data-sport="{{ event.sport }}"
+                        data-title="{{ event.title }}"
+                        data-location="{{ event.location }}"
+                    >
+
+                        <div class="event-card-top">
+
+                            <span class="event-sport">
+                                {{ event.sport }}
+                            </span>
+
+                            <span class="event-level">
+                                {{ event.level }}
+                            </span>
+
+                        </div>
+
+                        <h3>{{ event.title }}</h3>
+
+                        <p>📍 {{ event.location }}</p>
+
+                        <p>
+                            📅 {{ event.date|date:"d M Y, h:i A" }}
+                        </p>
+
+                        <p>
+                            Organized by {{ event.organizer.username }}
+                        </p>
+
+                        <p>
+                            👥 {{ event.players_joined }} /
+                            {{ event.players_needed }} players joined
+                        </p>
+
+                        <p>
+                            {{ event.players_remaining }} slots remaining
+                        </p>
+
+                        <!-- EVENT RATING -->
+                        {% if event.review_count > 0 %}
+
+                            <div class="event-rating">
+
+                                <span class="stars">
+                                    {% with rating=event.average_rating|floatformat:0 %}
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= rating|add:"0" %}
+                                                ★
+                                            {% else %}
+                                                ☆
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endwith %}
+                                </span>
+
+                                <span class="rating-number">
+                                    {{ event.average_rating|floatformat:1 }}/5
+                                </span>
+
+                                <span class="review-total">
+                                    ({{ event.review_count }}
+                                    {% if event.review_count == 1 %}
+                                        review
+                                    {% else %}
+                                        reviews
+                                    {% endif %})
+                                </span>
+
+                            </div>
+
+                        {% else %}
+
+                            <div class="event-rating not-rated">
+                                ⭐ Not rated yet
+                            </div>
+
+                        {% endif %}
+
+                        <a
+                            href="{% url 'event_detail' event.id %}"
+                            class="join-link"
+                        >
+                            View Event →
+                        </a>
+
+                    </div>
+
+                {% empty %}
+
+                    <p>
+                        No sports events available right now.
+                        Create an event and invite players!
+                    </p>
+
+                {% endfor %}
+
+            </div>
+
+            <p id="noResults" style="display:none;">
+                No matching games found. Try another search.
+            </p>
+
+        </div>
+
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="how-section" id="how-it-works">
+
+        <div class="section-heading">
+
+            <p class="section-eyebrow">SIMPLE AND EASY</p>
+
+            <h2>How PlayNear Works</h2>
+
+            <p>
+                Find your team and start playing in three simple steps.
+            </p>
+
+        </div>
+
+        <div class="how-grid">
+
+            <div class="how-card">
+                <span>01</span>
+                <h3>Discover Games</h3>
+                <p>
+                    Explore sports events happening around your area.
+                </p>
+            </div>
+
+            <div class="how-card">
+                <span>02</span>
+                <h3>Request to Join</h3>
+                <p>
+                    Find an event you like and send a request to its organizer.
+                </p>
+            </div>
+
+            <div class="how-card">
+                <span>03</span>
+                <h3>Play Together</h3>
+                <p>
+                    Get approved by the organizer and enjoy your game.
+                </p>
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- CALL TO ACTION -->
+    <section class="cta-section">
+
+        <h2>Have a Game in Mind?</h2>
+
+        <p>
+            Create your own event and find players to complete your team.
+        </p>
+
+        <a href="{% url 'create_event' %}" class="btn btn-green">
+            Create Your Event
+        </a>
+
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+
+        <div class="footer-content">
+
+            <h2>PlayNear<span>.</span></h2>
+
+            <p>
+                Bringing sports lovers together, one game at a time.
+            </p>
+
+            <p>© 2026 PlayNear. All rights reserved.</p>
+
+        </div>
+
+    </footer>
+
+    <script src="{% static 'events/app.js' %}"></script>
+
+</body>
+</html>

@@ -1,0 +1,337 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>My Preferences | PlayNear</title>
+
+    <link rel="stylesheet" href="{% static 'events/style.css' %}">
+
+    <style>
+        body {
+            background-color: #f4f7f2;
+            color: #18231d !important;
+        }
+
+        .preferences-container {
+            max-width: 650px;
+            margin: 50px auto;
+            padding: 30px;
+            background: #ffffff !important;
+            color: #18231d !important;
+            border-radius: 16px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        .preferences-container h1 {
+            margin-bottom: 10px;
+            color: #18231d !important;
+        }
+
+        .preferences-container p {
+            color: #444444 !important;
+        }
+
+        .preference-group {
+            margin: 25px 0;
+        }
+
+        .preference-group > label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #18231d !important;
+        }
+
+        .sport-options label {
+            display: inline-flex !important;
+            align-items: center;
+            gap: 7px;
+            margin: 8px 15px 8px 0;
+            font-weight: normal;
+            color: #18231d !important;
+        }
+
+        .sport-options input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #278a35;
+            cursor: pointer;
+        }
+
+        .preference-group select,
+        .location-input {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px;
+            color: #18231d !important;
+            background-color: #ffffff !important;
+            border: 1px solid #999999 !important;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .location-button {
+            width: 100%;
+            margin-top: 12px;
+            padding: 13px;
+            background: #e7f5dc;
+            color: #205d2b;
+            border: 1px solid #9acb7b;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .location-button:hover {
+            background: #d8edca;
+        }
+
+        .location-help {
+            font-size: 13px;
+            margin-top: 8px;
+            color: #666 !important;
+        }
+
+        .location-status {
+            margin-top: 10px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .save-button {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            color: #18231d !important;
+            background: #b9f66b !important;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .save-button:hover {
+            background: #a5e653 !important;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #237a35 !important;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .errorlist {
+            color: #c62828 !important;
+            margin-top: 8px;
+        }
+
+        @media (max-width: 700px) {
+            .preferences-container {
+                margin: 20px 12px;
+                padding: 22px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="preferences-container">
+
+        <a href="{% url 'home' %}" class="back-link">
+            ← Back to PlayNear
+        </a>
+
+        <h1>My Sports Preferences</h1>
+
+        <p>
+            Tell PlayNear what you enjoy.
+            We'll use your preferences to recommend nearby sports events.
+        </p>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <!-- Favourite sports -->
+            <div class="preference-group">
+
+                <label>Choose Your Favourite Sports</label>
+
+                <div class="sport-options">
+                    {{ form.favorite_sports }}
+                </div>
+
+                {% if form.favorite_sports.errors %}
+                    <p class="errorlist">{{ form.favorite_sports.errors }}</p>
+                {% endif %}
+
+            </div>
+
+            <!-- Skill level -->
+            <div class="preference-group">
+
+                <label for="{{ form.preferred_level.id_for_label }}">
+                    Preferred Skill Level
+                </label>
+
+                {{ form.preferred_level }}
+
+                {% if form.preferred_level.errors %}
+                    <p class="errorlist">{{ form.preferred_level.errors }}</p>
+                {% endif %}
+
+            </div>
+
+            <!-- Travel distance -->
+            <div class="preference-group">
+
+                <label for="{{ form.preferred_radius.id_for_label }}">
+                    Preferred Travel Distance
+                </label>
+
+                {{ form.preferred_radius }}
+
+                {% if form.preferred_radius.errors %}
+                    <p class="errorlist">{{ form.preferred_radius.errors }}</p>
+                {% endif %}
+
+            </div>
+
+            <!-- Player location -->
+            <div class="preference-group">
+
+                <label>Your Current Location</label>
+
+                <button
+                    type="button"
+                    class="location-button"
+                    id="detectLocationButton"
+                >
+                    📍 Detect My Current Location
+                </button>
+
+                <p class="location-help">
+                    Allow location access when your browser asks.
+                    You can also enter your coordinates manually.
+                </p>
+
+                <label for="{{ form.latitude.id_for_label }}">
+                    Latitude
+                </label>
+
+                {{ form.latitude }}
+
+                {% if form.latitude.errors %}
+                    <p class="errorlist">{{ form.latitude.errors }}</p>
+                {% endif %}
+
+                <label for="{{ form.longitude.id_for_label }}"
+                       style="margin-top: 15px;">
+                    Longitude
+                </label>
+
+                {{ form.longitude }}
+
+                {% if form.longitude.errors %}
+                    <p class="errorlist">{{ form.longitude.errors }}</p>
+                {% endif %}
+
+                <p id="locationStatus" class="location-status"></p>
+
+            </div>
+
+            <button type="submit" class="btn btn-green save-button">
+                Save My Preferences
+            </button>
+
+        </form>
+
+    </main>
+
+    <script>
+        const detectButton = document.getElementById("detectLocationButton");
+        const latitudeInput = document.getElementById(
+            "{{ form.latitude.id_for_label }}"
+        );
+        const longitudeInput = document.getElementById(
+            "{{ form.longitude.id_for_label }}"
+        );
+        const locationStatus = document.getElementById("locationStatus");
+
+        detectButton.addEventListener("click", function () {
+
+            if (!navigator.geolocation) {
+                locationStatus.textContent =
+                    "Your browser does not support location detection.";
+                locationStatus.style.color = "#c62828";
+                return;
+            }
+
+            detectButton.disabled = true;
+            detectButton.textContent = "Detecting your location...";
+            locationStatus.textContent = "Please wait...";
+            locationStatus.style.color = "#555";
+
+            navigator.geolocation.getCurrentPosition(
+
+                function (position) {
+
+                    latitudeInput.value =
+                        position.coords.latitude.toFixed(7);
+
+                    longitudeInput.value =
+                        position.coords.longitude.toFixed(7);
+
+                    locationStatus.textContent =
+                        "Location detected successfully! Remember to save your preferences.";
+
+                    locationStatus.style.color = "#237a35";
+
+                    detectButton.disabled = false;
+                    detectButton.textContent = "📍 Detect My Current Location";
+                },
+
+                function (error) {
+
+                    let message = "Could not detect your location.";
+
+                    if (error.code === error.PERMISSION_DENIED) {
+                        message = "Location permission was denied. Please allow location access in your browser.";
+                    } else if (error.code === error.POSITION_UNAVAILABLE) {
+                        message = "Your current location is unavailable.";
+                    } else if (error.code === error.TIMEOUT) {
+                        message = "Location detection timed out. Please try again.";
+                    }
+
+                    locationStatus.textContent = message;
+                    locationStatus.style.color = "#c62828";
+
+                    detectButton.disabled = false;
+                    detectButton.textContent = "📍 Try Detecting Location Again";
+                },
+
+                {
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: 60000
+                }
+            );
+        });
+    </script>
+
+</body>
+</html>

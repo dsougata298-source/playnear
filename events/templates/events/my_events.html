@@ -1,0 +1,531 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>My Events | PlayNear</title>
+
+    <meta name="description" content="Manage your PlayNear events and track your sports join requests.">
+
+    <link rel="stylesheet" href="{% static 'events/style.css' %}">
+
+    <style>
+        body {
+            background: #f5f8f2;
+            color: #18231d;
+        }
+
+        .my-events-page {
+            max-width: 1150px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+
+        .my-events-heading {
+            margin-bottom: 35px;
+        }
+
+        .my-events-heading h1 {
+            color: #18231d;
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .my-events-heading p {
+            color: #64715f;
+            line-height: 1.6;
+        }
+
+        .events-section {
+            margin-bottom: 55px;
+        }
+
+        .events-section h2 {
+            color: #18231d;
+            margin-bottom: 22px;
+            font-size: 26px;
+        }
+
+        .my-events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .my-event-card {
+            background: #ffffff;
+            border: 1px solid #dce5d6;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .my-event-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .my-event-card h3 {
+            color: #18231d;
+            margin: 15px 0;
+            font-size: 21px;
+        }
+
+        .my-event-card p {
+            color: #52604f;
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+
+        .my-event-sport,
+        .my-event-level,
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+
+        .my-event-sport {
+            background: #e9f7dc;
+            color: #315f25;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .my-event-level {
+            background: #f0f2ed;
+            color: #52604f;
+        }
+
+        .status-badge {
+            font-weight: bold;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-approved {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-rejected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-cancelled {
+            background: #f8d7da;
+            color: #842029;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .my-event-link {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 11px 18px;
+            background: #315f25;
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s ease;
+        }
+
+        .my-event-link:hover {
+            background: #23471b;
+        }
+
+        .edit-event-link {
+            background: #315f25;
+        }
+
+        .cancel-event-button {
+            background: #b42318;
+        }
+
+        .cancel-event-button:hover {
+            background: #8f1c13;
+        }
+
+        .event-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .event-cancelled-notice {
+            background: #fff0f0;
+            color: #842029;
+            padding: 12px;
+            border-radius: 9px;
+            margin: 15px 0;
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        .empty-events {
+            background: #ffffff;
+            padding: 35px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid #dce5d6;
+        }
+
+        .empty-events h3 {
+            color: #18231d;
+            margin-bottom: 10px;
+        }
+
+        .empty-events p {
+            color: #64715f;
+            margin-bottom: 20px;
+        }
+
+        .my-events-footer {
+            margin-top: 35px;
+            padding: 25px 0;
+            border-top: 1px solid #dce5d6;
+        }
+
+        .my-events-footer a {
+            color: #315f25;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .my-events-footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+            .my-events-heading h1 {
+                font-size: 28px;
+            }
+
+            .my-events-page {
+                margin: 25px auto;
+                padding: 15px;
+            }
+
+            .my-event-card {
+                padding: 19px;
+            }
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <!-- SHARED NAVIGATION -->
+    {% include "events/navbar.html" %}
+
+    <!-- MY EVENTS SECTION -->
+    <main class="my-events-page">
+
+        <div class="my-events-heading">
+
+            <h1>My Events 🏆</h1>
+
+            <p>
+                Manage your created events and track your requests to join other games.
+            </p>
+
+        </div>
+
+        <!-- EVENTS CREATED BY ME -->
+        <section class="events-section">
+
+            <h2>My Created Events</h2>
+
+            {% if created_events %}
+
+                <div class="my-events-grid">
+
+                    {% for event in created_events %}
+
+                        <div class="my-event-card">
+
+                            <span class="my-event-sport">
+                                {{ event.sport }}
+                            </span>
+
+                            <span class="my-event-level">
+                                {{ event.level }}
+                            </span>
+
+                            <h3>{{ event.title }}</h3>
+
+                            {% if event.is_cancelled %}
+
+                                <span class="status-badge status-cancelled">
+                                    Cancelled
+                                </span>
+
+                                <div class="event-cancelled-notice">
+                                    This event has been cancelled. Players can no longer join.
+                                </div>
+
+                            {% elif event.date <= now %}
+
+                                <span class="status-badge status-pending">
+                                    Event Ended / Started
+                                </span>
+
+                            {% else %}
+
+                                <span class="status-badge status-active">
+                                    Upcoming Event
+                                </span>
+
+                            {% endif %}
+
+                            <p>
+                                📍 <strong>Location:</strong>
+                                {{ event.location }}
+                            </p>
+
+                            <p>
+                                📅 <strong>Date:</strong>
+                                {{ event.date|date:"d M Y, h:i A" }}
+                            </p>
+
+                            <p>
+                                👥 <strong>Players joined:</strong>
+                                {{ event.players_joined }} / {{ event.players_needed }}
+                            </p>
+
+                            <p>
+                                <strong>Remaining slots:</strong>
+                                {{ event.players_remaining }}
+                            </p>
+
+                            <div class="event-actions">
+
+                                <a
+                                    href="{% url 'event_detail' event.id %}"
+                                    class="my-event-link"
+                                >
+                                    View Event →
+                                </a>
+
+                                {% if not event.is_cancelled and event.date > now %}
+
+                                    <a
+                                        href="{% url 'edit_event' event.id %}"
+                                        class="my-event-link edit-event-link"
+                                    >
+                                        ✏️ Edit Event
+                                    </a>
+
+                                    <form
+                                        method="POST"
+                                        action="{% url 'cancel_event' event.id %}"
+                                        onsubmit="return confirm('Are you sure you want to cancel this event? Approved participants will be notified.');"
+                                    >
+
+                                        {% csrf_token %}
+
+                                        <button
+                                            type="submit"
+                                            class="my-event-link cancel-event-button"
+                                        >
+                                            ✖ Cancel Event
+                                        </button>
+
+                                    </form>
+
+                                {% endif %}
+
+                            </div>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% else %}
+
+                <div class="empty-events">
+
+                    <h3>You haven't created any events yet.</h3>
+
+                    <p>
+                        Create your first sports event and invite players!
+                    </p>
+
+                    <a href="{% url 'create_event' %}" class="my-event-link">
+                        + Create Event
+                    </a>
+
+                </div>
+
+            {% endif %}
+
+        </section>
+
+        <!-- EVENTS I REQUESTED TO JOIN -->
+        <section class="events-section">
+
+            <h2>My Join Requests</h2>
+
+            {% if my_join_requests %}
+
+                <div class="my-events-grid">
+
+                    {% for join_request in my_join_requests %}
+
+                        <div class="my-event-card">
+
+                            <span class="my-event-sport">
+                                {{ join_request.event.sport }}
+                            </span>
+
+                            <h3>{{ join_request.event.title }}</h3>
+
+                            {% if join_request.event.is_cancelled %}
+
+                                <span class="status-badge status-cancelled">
+                                    Event Cancelled
+                                </span>
+
+                                <div class="event-cancelled-notice">
+                                    The organizer has cancelled this event.
+                                </div>
+
+                            {% endif %}
+
+                            <p>
+                                📍 <strong>Location:</strong>
+                                {{ join_request.event.location }}
+                            </p>
+
+                            <p>
+                                📅 <strong>Date:</strong>
+                                {{ join_request.event.date|date:"d M Y, h:i A" }}
+                            </p>
+
+                            <p>
+                                👤 <strong>Organizer:</strong>
+                                {{ join_request.event.organizer.username }}
+                            </p>
+
+                            <p>
+                                <strong>Request status:</strong>
+
+                                {% if join_request.status == "Pending" %}
+
+                                    <span class="status-badge status-pending">
+                                        Pending
+                                    </span>
+
+                                {% elif join_request.status == "Approved" %}
+
+                                    <span class="status-badge status-approved">
+                                        Approved
+                                    </span>
+
+                                {% elif join_request.status == "Rejected" %}
+
+                                    <span class="status-badge status-rejected">
+                                        Rejected
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="status-badge">
+                                        {{ join_request.status }}
+                                    </span>
+
+                                {% endif %}
+
+                            </p>
+
+                            <a
+                                href="{% url 'event_detail' join_request.event.id %}"
+                                class="my-event-link"
+                            >
+                                View Event →
+                            </a>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% else %}
+
+                <div class="empty-events">
+
+                    <h3>You haven't requested to join any events yet.</h3>
+
+                    <p>
+                        Explore nearby games and find your next team!
+                    </p>
+
+                    <a
+                        href="{% url 'home' %}#find-games"
+                        class="my-event-link"
+                    >
+                        Explore Games
+                    </a>
+
+                </div>
+
+            {% endif %}
+
+        </section>
+
+        <!-- FOOTER NAVIGATION -->
+        <div class="my-events-footer">
+
+            <a href="{% url 'home' %}">
+                ← Back to PlayNear Home
+            </a>
+
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+
+        <div class="footer-content">
+
+            <h2>
+                PlayNear<span>.</span>
+            </h2>
+
+            <p>
+                Bringing sports lovers together, one game at a time.
+            </p>
+
+            <p>
+                © 2026 PlayNear. All rights reserved.
+            </p>
+
+        </div>
+
+    </footer>
+
+</body>
+</html>

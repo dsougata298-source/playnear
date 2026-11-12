@@ -1,0 +1,195 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile | PlayNear</title>
+
+    <link rel="stylesheet" href="{% static 'events/style.css' %}">
+
+   
+<style>
+    .profile-page {
+        max-width: 650px;
+        margin: 40px auto;
+        padding: 25px;
+        color: #f8faf6;
+    }
+
+    .profile-card {
+        background: #18231d;
+        color: #f8faf6;
+        padding: 30px;
+        border-radius: 18px;
+        border: 1px solid #35483b;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    }
+
+    .profile-card h1 {
+        color: #b9f66b;
+        margin-top: 0;
+    }
+
+    .profile-card p {
+        color: #d0dbd1;
+    }
+
+    .profile-card label {
+        display: block;
+        margin: 18px 0 8px;
+        color: #b9f66b;
+        font-weight: 600;
+    }
+
+    .profile-card input,
+    .profile-card textarea {
+        width: 100%;
+        padding: 13px;
+        border: 1px solid #526657;
+        border-radius: 9px;
+        background: #26362c;
+        color: #ffffff;
+        font: inherit;
+        box-sizing: border-box;
+    }
+
+    .profile-card input::placeholder,
+    .profile-card textarea::placeholder {
+        color: #aab9ad;
+    }
+
+    .profile-card input:focus,
+    .profile-card textarea:focus {
+        outline: 2px solid #b9f66b;
+        border-color: #b9f66b;
+    }
+
+    .profile-card button {
+        margin-top: 22px;
+        padding: 13px 22px;
+        border: none;
+        border-radius: 9px;
+        background: #b9f66b;
+        color: #18231d;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .profile-card button:hover {
+        background: #8bd63b;
+    }
+
+    .profile-message {
+        padding: 12px;
+        background: #304a35;
+        color: #b9f66b;
+        border-radius: 8px;
+        margin-bottom: 15px;
+    }
+
+    .form-errors {
+        color: #ff9999;
+    }
+
+    .profile-card input[type="file"] {
+        padding: 10px;
+        cursor: pointer;
+        background: #26362c;
+        color: #f8faf6;
+    }
+
+    .profile-card small {
+        display: block;
+        color: #cbd5cc;
+        margin-top: 8px;
+    }
+</style>
+
+</head>
+
+<body>
+
+{% include "events/navbar.html" %}
+
+<main class="profile-page">
+
+    <div class="profile-card">
+
+        <h1>My Player Profile</h1>
+
+        <p>
+            Tell other players about yourself and your sports interests.
+        </p>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="profile-message">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="form-group">
+    <label for="{{ form.profile_photo.id_for_label }}">
+        Profile Photo
+    </label>
+
+    {% if profile.profile_photo %}
+        <div style="margin: 15px 0;">
+            <img
+                src="{{ profile.profile_photo.url }}"
+                alt="Current profile photo"
+                style="
+                    width: 120px;
+                    height: 120px;
+                    border-radius: 50%;
+                    object-fit: cover;
+                    border: 3px solid #b9f66b;
+                "
+            >
+            <p>Current profile photo</p>
+        </div>
+    {% endif %}
+
+    {{ form.profile_photo }}
+
+    {% for error in form.profile_photo.errors %}
+        <p style="color: #ff7777;">{{ error }}</p>
+    {% endfor %}
+
+    <small>Choose an image from your phone or computer.</small>
+</div>
+
+            {% if form.errors %}
+                <div class="form-errors">
+                    {{ form.errors }}
+                </div>
+            {% endif %}
+
+            <label for="{{ form.city.id_for_label }}">
+                Your City
+            </label>
+            {{ form.city }}
+
+            <label for="{{ form.bio.id_for_label }}">
+                About You
+            </label>
+            {{ form.bio }}
+
+            <button type="submit">
+                Save My Profile
+            </button>
+
+        </form>
+
+    </div>
+
+</main>
+
+</body>
+</html>

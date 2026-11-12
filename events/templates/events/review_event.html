@@ -1,0 +1,201 @@
+```html
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Review Event | PlayNear</title>
+
+    <link rel="stylesheet" href="{% static 'events/style.css' %}">
+
+    <style>
+        body {
+            background: #f5f8f2 !important;
+            color: #18231d !important;
+        }
+
+        .review-page {
+            max-width: 650px;
+            margin: 55px auto;
+            padding: 20px;
+        }
+
+        .review-card {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 18px;
+            border: 1px solid #dce5d6;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.06);
+        }
+
+        .review-card h1 {
+            color: #18231d;
+            margin-bottom: 10px;
+        }
+
+        .review-description {
+            color: #64715f;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .event-name {
+            background: #e9f7dc;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            color: #18231d;
+            font-weight: 700;
+        }
+
+        .review-form p {
+            margin-bottom: 20px;
+        }
+
+        .review-form label {
+            display: block;
+            color: #18231d;
+            font-weight: 700;
+            margin-bottom: 9px;
+        }
+
+        .review-form select,
+        .review-form textarea {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid #cbd8c4;
+            border-radius: 10px;
+            background: #f8faf6;
+            color: #18231d;
+            font-size: 15px;
+            box-sizing: border-box;
+        }
+
+        .review-form select:focus,
+        .review-form textarea:focus {
+            outline: 2px solid #8bd63b;
+            border-color: #8bd63b;
+        }
+
+        .review-submit {
+            width: 100%;
+            padding: 14px;
+            background: #18231d;
+            color: #b9f66b;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .review-submit:hover {
+            background: #26362c;
+        }
+
+        .review-back {
+            display: inline-block;
+            margin-top: 20px;
+            color: #315f25;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .review-back:hover {
+            text-decoration: underline;
+        }
+
+        .form-errors {
+            color: #b32626;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .review-page {
+                margin: 25px auto;
+                padding: 14px;
+            }
+
+            .review-card {
+                padding: 22px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    {% include "events/navbar.html" %}
+
+    <main class="review-page">
+
+        <div class="review-card">
+
+            <h1>⭐ Share Your Experience</h1>
+
+            <p class="review-description">
+                Tell other players how your experience was.
+                Your feedback helps make PlayNear better!
+            </p>
+
+            <div class="event-name">
+                🏆 Event: {{ event.title }}
+            </div>
+
+            {% if existing_review %}
+                <p>
+                    You have already reviewed this event.
+                    You can update your rating and review below.
+                </p>
+            {% endif %}
+
+            <form method="POST" class="review-form">
+
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="form-errors">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                {% for field in form %}
+
+                    <p>
+                        {{ field.label_tag }}
+
+                        {{ field }}
+
+                        {% if field.errors %}
+                            <span class="form-errors">
+                                {{ field.errors }}
+                            </span>
+                        {% endif %}
+                    </p>
+
+                {% endfor %}
+
+                <button type="submit" class="review-submit">
+                    {% if existing_review %}
+                        Update My Review
+                    {% else %}
+                        Submit My Review
+                    {% endif %}
+                </button>
+
+            </form>
+
+            <a href="{% url 'event_detail' event.id %}"
+               class="review-back">
+                ← Back to Event
+            </a>
+
+        </div>
+
+    </main>
+
+</body>
+</html>
+```

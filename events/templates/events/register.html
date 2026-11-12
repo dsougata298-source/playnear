@@ -1,0 +1,39 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account | PlayNear</title>
+    <link rel="stylesheet" href="{% static 'events/style.css' %}">
+</head>
+<body>
+
+    <section class="search-section">
+        <div class="centered-heading">
+            <h2>Create your PlayNear account</h2>
+            <p>Join your local sports community!</p>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+
+            <button type="submit" class="search-button">
+                Create Account
+            </button>
+        </form>
+
+        <p>
+            Already have an account?
+            <a href="{% url 'login' %}">Log in</a>
+        </p>
+
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    </section>
+
+</body>
+</html>

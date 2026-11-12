@@ -1,0 +1,54 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Messages | PlayNear</title>
+    <link rel="stylesheet" href="{% static 'events/style.css' %}">
+    <style>
+        .messaging-page {
+            max-width: 750px;
+            margin: 40px auto;
+            padding: 20px;
+            color: #f8faf6;
+        }
+        .message-person {
+            display: block;
+            padding: 18px;
+            margin: 12px 0;
+            background: #26362c;
+            border: 1px solid #526657;
+            border-radius: 12px;
+            color: #f8faf6;
+            text-decoration: none;
+        }
+        .message-person:hover {
+            border-color: #b9f66b;
+        }
+        .message-person strong {
+            color: #b9f66b;
+        }
+    </style>
+</head>
+<body>
+<main class="messaging-page">
+    <h1>My Messages 💬</h1>
+
+    {% for person in conversations %}
+        <a class="message-person"
+           href="{% url 'message_conversation' person.username %}">
+            <strong>{{ person.username }}</strong>
+            <p>Open conversation →</p>
+        </a>
+    {% empty %}
+        <p>You don't have any conversations yet.</p>
+        <p>Visit the Players Directory to find someone to message.</p>
+        <a href="{% url 'players_directory' %}">Find Players</a>
+    {% endfor %}
+
+    <p><a href="{% url 'home' %}">← Back to Home</a></p>
+</main>
+</body>
+</html>

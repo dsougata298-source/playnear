@@ -1,0 +1,271 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>My Activity | PlayNear</title>
+
+    <link rel="stylesheet" href="{% static 'events/style.css' %}">
+
+    <style>
+        .activity-page {
+            min-height: 100vh;
+            padding: 35px 16px;
+            background: #f1f5ed;
+        }
+
+        .activity-container {
+            max-width: 950px;
+            margin: auto;
+        }
+
+        .activity-header {
+            margin: 25px 0;
+        }
+
+        .activity-header h1 {
+            color: #18231d;
+            margin-bottom: 8px;
+        }
+
+        .activity-header p {
+            color: #647064;
+        }
+
+        .activity-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .activity-stat {
+            background: white;
+            padding: 22px;
+            border-radius: 14px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .activity-stat h2 {
+            color: #18231d;
+            font-size: 30px;
+            margin: 8px 0;
+        }
+
+        .activity-stat p {
+            color: #647064;
+            margin: 0;
+        }
+
+        .activity-section {
+            background: white;
+            padding: 22px;
+            border-radius: 14px;
+            margin-top: 22px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .activity-section h2 {
+            color: #18231d;
+            margin-top: 0;
+        }
+
+        .sport-row,
+        .activity-row {
+            padding: 15px 0;
+            border-bottom: 1px solid #edf0e9;
+        }
+
+        .sport-row:last-child,
+        .activity-row:last-child {
+            border-bottom: none;
+        }
+
+        .sport-row strong,
+        .activity-row strong {
+            color: #18231d;
+        }
+
+        .activity-row p {
+            color: #647064;
+            margin: 7px 0 0;
+        }
+
+        .activity-tag {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            background: #e8f7d7;
+            color: #315b17;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .empty-activity {
+            color: #647064;
+            padding: 15px 0;
+        }
+
+        .activity-event-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: #315b17;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        @media (max-width: 600px) {
+            .activity-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .activity-stat {
+                padding: 18px;
+            }
+
+            .activity-section {
+                padding: 17px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<main class="activity-page">
+
+    <div class="activity-container">
+
+        <a href="{% url 'home' %}" class="back-link">
+            ← Back to PlayNear
+        </a>
+
+        <div class="activity-header">
+
+            <h1>My Sports Activity 📊</h1>
+
+            <p>
+                Track your sports journey and see how active you are on PlayNear.
+            </p>
+
+        </div>
+
+        <!-- ACTIVITY STATISTICS -->
+
+        <div class="activity-stats">
+
+            <div class="activity-stat">
+                <p>Events Explored</p>
+                <h2>{{ total_views }}</h2>
+            </div>
+
+            <div class="activity-stat">
+                <p>Join Requests</p>
+                <h2>{{ total_requests }}</h2>
+            </div>
+
+            <div class="activity-stat">
+                <p>Approved Events</p>
+                <h2>{{ total_approved }}</h2>
+            </div>
+
+        </div>
+
+        <!-- SPORTS INTEREST -->
+
+        <section class="activity-section">
+
+            <h2>My Sports Interests 🏆</h2>
+
+            {% for sport, stats in sport_summary %}
+
+                <div class="sport-row">
+
+                    <strong>{{ sport }}</strong>
+
+                    <p>
+                        Explored: {{ stats.views }} |
+                        Requested: {{ stats.requests }} |
+                        Approved: {{ stats.approved }}
+                    </p>
+
+                    <span class="activity-tag">
+                        {{ stats.total }} activities
+                    </span>
+
+                </div>
+
+            {% empty %}
+
+                <p class="empty-activity">
+                    You haven't recorded any sports activity yet.
+                    Explore some events to get started!
+                </p>
+
+            {% endfor %}
+
+        </section>
+
+        <!-- RECENT ACTIVITY -->
+
+        <section class="activity-section">
+
+            <h2>Recent Activity 🕒</h2>
+
+            {% for activity in recent_activities %}
+
+                <div class="activity-row">
+
+                    <strong>{{ activity.event.title }}</strong>
+
+                    <p>
+
+                        {% if activity.activity_type == "view" %}
+
+                            👀 You viewed this event.
+
+                        {% elif activity.activity_type == "join_request" %}
+
+                            📩 You requested to join this event.
+
+                        {% elif activity.activity_type == "join_approved" %}
+
+                            🎉 Your request was approved!
+
+                        {% endif %}
+
+                    </p>
+
+                    <p>
+                        {{ activity.created_at|date:"M d, Y - h:i A" }}
+                    </p>
+
+                    <a
+                        href="{% url 'event_detail' activity.event.id %}"
+                        class="activity-event-link"
+                    >
+                        View Event →
+                    </a>
+
+                </div>
+
+            {% empty %}
+
+                <p class="empty-activity">
+                    No recent activity yet.
+                </p>
+
+            {% endfor %}
+
+        </section>
+
+    </div>
+
+</main>
+
+</body>
+</html>

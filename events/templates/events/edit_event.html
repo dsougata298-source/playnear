@@ -1,0 +1,295 @@
+
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Edit Event | PlayNear</title>
+
+    <link rel="stylesheet" href="{% static 'events/style.css' %}">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #f1f5ed;
+            color: #18231d;
+            font-family: Arial, sans-serif;
+        }
+
+        .edit-page {
+            width: 100%;
+            max-width: 650px;
+            margin: 40px auto;
+            padding: 35px;
+            background: #ffffff;
+            color: #18231d;
+            border-radius: 18px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.10);
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 22px;
+            color: #365c27;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .edit-page h1 {
+            margin: 0 0 10px;
+            color: #18231d;
+            font-size: 30px;
+        }
+
+        .edit-subtitle {
+            margin-bottom: 28px;
+            color: #47534a;
+            line-height: 1.6;
+        }
+
+        .edit-page form p {
+            margin: 0 0 20px;
+        }
+
+        .edit-page label {
+            display: block;
+            margin-bottom: 8px;
+            color: #18231d;
+            font-weight: 600;
+        }
+
+        .edit-page input:not([type="hidden"]):not([type="checkbox"]),
+        .edit-page select,
+        .edit-page textarea {
+            display: block;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            margin-top: 7px;
+            padding: 13px;
+            border: 1px solid #cbd5c5;
+            border-radius: 9px;
+            background: #ffffff;
+            color: #18231d;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+        }
+
+        /* Mobile-friendly date and time picker */
+
+        .edit-page input[type="datetime-local"] {
+            display: block;
+            width: 100%;
+            min-width: 0;
+            max-width: 100%;
+            min-height: 54px;
+            padding: 12px;
+            background-color: #ffffff;
+            color: #18231d;
+            border: 1px solid #cbd5c5;
+            border-radius: 9px;
+            font-size: 16px;
+            color-scheme: light;
+            -webkit-appearance: auto;
+            appearance: auto;
+        }
+
+        .edit-page input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+            opacity: 1;
+        }
+
+        .edit-page input:focus,
+        .edit-page select:focus,
+        .edit-page textarea:focus {
+            outline: 2px solid #8bd63b;
+            border-color: #8bd63b;
+        }
+
+        .edit-page input[type="checkbox"] {
+            accent-color: #76c52b;
+        }
+
+        .edit-page .helptext {
+            display: block;
+            margin-top: 6px;
+            color: #68746b;
+            font-size: 13px;
+        }
+
+        .edit-page ul.errorlist {
+            margin: 8px 0;
+            padding: 12px 30px;
+            border-radius: 8px;
+            background: #fff0f0;
+            color: #a00000;
+        }
+
+        .error-message {
+            margin-bottom: 20px;
+            padding: 14px;
+            border-radius: 8px;
+            background: #fff0f0;
+            color: #a00000;
+        }
+
+        .success-message {
+            margin-bottom: 18px;
+            padding: 12px;
+            border-radius: 8px;
+            background: #eaf8df;
+            color: #285b13;
+        }
+
+        .edit-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 28px;
+        }
+
+        .edit-actions button,
+        .edit-actions a {
+            display: inline-block;
+            padding: 14px 22px;
+            border: none;
+            border-radius: 9px;
+            font-size: 15px;
+            font-weight: 600;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .btn-primary {
+            background: #8bd63b;
+            color: #18231d;
+        }
+
+        .btn-primary:hover {
+            background: #76c52b;
+        }
+
+        .btn-secondary {
+            background: #e8eee3;
+            color: #18231d;
+        }
+
+        .btn-secondary:hover {
+            background: #d5dfce;
+        }
+
+        /* Phone screens */
+
+        @media (max-width: 600px) {
+
+            body {
+                padding: 12px;
+            }
+
+            .edit-page {
+                width: 100%;
+                margin: 15px auto;
+                padding: 22px 18px;
+                border-radius: 14px;
+            }
+
+            .edit-page h1 {
+                font-size: 25px;
+            }
+
+            .edit-subtitle {
+                font-size: 14px;
+            }
+
+            .edit-page input:not([type="hidden"]):not([type="checkbox"]),
+            .edit-page select,
+            .edit-page textarea,
+            .edit-page input[type="datetime-local"] {
+                width: 100%;
+                min-height: 52px;
+                font-size: 16px;
+            }
+
+            .edit-actions {
+                flex-direction: column;
+            }
+
+            .edit-actions button,
+            .edit-actions a {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="edit-page">
+
+        <a href="{% url 'my_events' %}" class="back-link">
+            ← Back to My Events
+        </a>
+
+        <h1>Edit Event</h1>
+
+        <p class="edit-subtitle">
+            Update your sports event details and keep your players informed.
+        </p>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="success-message">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="error-message">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            {% if form.errors %}
+                <div class="error-message">
+                    Please correct the errors highlighted below.
+                </div>
+            {% endif %}
+
+            {{ form.as_p }}
+
+            <div class="edit-actions">
+
+                <button type="submit" class="btn-primary">
+                    Save Changes
+                </button>
+
+                <a href="{% url 'my_events' %}" class="btn-secondary">
+                    Cancel
+                </a>
+
+            </div>
+
+        </form>
+
+    </main>
+
+</body>
+</html>

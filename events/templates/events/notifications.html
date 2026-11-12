@@ -1,0 +1,468 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Notifications | PlayNear</title>
+
+    <link rel="stylesheet" href="{% static 'events/style.css' %}">
+
+    <style>
+        body {
+            background: #f5f8f2 !important;
+            color: #18231d !important;
+        }
+
+        .notification-page {
+            max-width: 800px;
+            margin: 60px auto;
+            padding: 25px;
+        }
+
+        .notification-page h1 {
+            color: #18231d;
+            margin-bottom: 10px;
+        }
+
+        .notification-summary {
+            color: #64715f;
+            margin-bottom: 25px;
+        }
+
+        .notification-card {
+            background: #ffffff !important;
+            color: #18231d !important;
+            padding: 22px;
+            margin: 16px 0;
+            border: 1px solid #dce5d6;
+            border-radius: 14px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.05);
+        }
+
+        .notification-card p {
+            color: #18231d !important;
+            line-height: 1.6;
+        }
+
+        .notification-card.unread {
+            background: #e9f7dc !important;
+            border-left: 5px solid #72b832;
+        }
+
+        .notification-date {
+            color: #64715f !important;
+            font-size: 13px;
+        }
+
+        .notification-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-top: 14px;
+        }
+
+        .notification-actions form {
+            margin: 0;
+        }
+
+        .notification-actions button {
+            background: #315f25 !important;
+            color: #ffffff !important;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .notification-actions button:hover {
+            background: #23471b !important;
+        }
+
+        .notification-actions .delete-notification-button {
+            background: #ffe5e5 !important;
+            color: #a32626 !important;
+            border: 1px solid #f2bcbc;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .notification-actions .delete-notification-button:hover {
+            background: #f8cccc !important;
+        }
+
+        .read-status {
+            color: #315f25 !important;
+            font-weight: 600;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: #315f25 !important;
+            font-weight: bold;
+            text-decoration: none;
+            margin-top: 20px;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .empty-notifications {
+            text-align: center;
+            padding: 35px;
+        }
+
+        .live-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: #315f25;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        .live-dot {
+            width: 9px;
+            height: 9px;
+            background: #72b832;
+            border-radius: 50%;
+        }
+
+        /* Notification filters */
+
+        .notification-filters {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .notification-filters a {
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            background: #e5eddf;
+            color: #18231d !important;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .notification-filters a:hover {
+            background: #d3e5c7;
+        }
+
+        .notification-filters a.active {
+            background: #18231d;
+            color: #b9f66b !important;
+        }
+
+        /* Mark all as read */
+
+        .mark-all-container {
+            margin: 20px 0;
+        }
+
+        .mark-all-button {
+            background: #18231d;
+            color: #b9f66b;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .mark-all-button:hover {
+            background: #26362c;
+        }
+
+        /* Mobile responsive */
+
+        @media (max-width: 600px) {
+            .notification-page {
+                margin: 25px auto;
+                padding: 16px;
+            }
+
+            .notification-card {
+                padding: 18px;
+            }
+
+            .notification-actions button {
+                padding: 10px 14px;
+            }
+
+            .notification-filters a {
+                padding: 9px 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    {% include "events/navbar.html" %}
+
+    <main class="notification-page">
+
+        <h1>Your Notifications 🔔</h1>
+
+        <p class="notification-summary">
+            You have
+            <strong id="pageUnreadCount">{{ unread_count }}</strong>
+            unread notifications.
+        </p>
+
+        <!-- Notification filters -->
+
+        <div class="notification-filters">
+
+            <a href="{% url 'notifications' %}?filter=all"
+               class="{% if notification_filter == 'all' %}active{% endif %}">
+                All
+            </a>
+
+            <a href="{% url 'notifications' %}?filter=unread"
+               class="{% if notification_filter == 'unread' %}active{% endif %}">
+                Unread
+            </a>
+
+            <a href="{% url 'notifications' %}?filter=read"
+               class="{% if notification_filter == 'read' %}active{% endif %}">
+                Read
+            </a>
+
+        </div>
+
+        <!-- Notification configuration -->
+
+        <div
+            id="notification-config"
+            data-unread-count="{{ unread_count }}"
+            data-count-url="{% url 'unread_notification_count' %}"
+        ></div>
+
+        <div class="live-status">
+            <span class="live-dot"></span>
+            Live updates enabled
+        </div>
+
+        <!-- Mark all as read -->
+
+        {% if unread_count > 0 and notification_filter != "read" %}
+
+            <div class="mark-all-container">
+
+                <form method="POST"
+                      action="{% url 'mark_all_notifications_read' %}">
+
+                    {% csrf_token %}
+
+                    <button type="submit" class="mark-all-button">
+                        ✓ Mark All as Read
+                    </button>
+
+                </form>
+
+            </div>
+
+        {% endif %}
+
+        <!-- Notifications list -->
+
+        {% for notification in notifications %}
+
+            <div class="notification-card {% if not notification.is_read %}unread{% endif %}">
+
+                <p>{{ notification.message }}</p>
+
+                <small class="notification-date">
+                    {{ notification.created_at|date:"M d, Y - h:i A" }}
+                </small>
+
+                <div class="notification-actions">
+
+                    <!-- View event or review request -->
+
+                    {% if notification.event %}
+
+                        <form
+                            method="POST"
+                            action="{% url 'mark_notification_read' notification.id %}"
+                        >
+
+                            {% csrf_token %}
+
+                            {% if "requested to join" in notification.message|lower %}
+
+                                <input
+                                    type="hidden"
+                                    name="next"
+                                    value="{% url 'organizer_dashboard' %}"
+                                >
+
+                                <button type="submit">
+                                    Review Join Request →
+                                </button>
+
+                            {% else %}
+
+                                <input
+                                    type="hidden"
+                                    name="next"
+                                    value="{% url 'event_detail' notification.event.id %}"
+                                >
+
+                                <button type="submit">
+                                    View Event →
+                                </button>
+
+                            {% endif %}
+
+                        </form>
+
+                    {% endif %}
+
+                    <!-- Individual mark as read -->
+
+                    {% if not notification.is_read %}
+
+                        <form
+                            method="POST"
+                            action="{% url 'mark_notification_read' notification.id %}"
+                        >
+
+                            {% csrf_token %}
+
+                            <input
+                                type="hidden"
+                                name="next"
+                                value="{% url 'notifications' %}?filter={{ notification_filter }}"
+                            >
+
+                            <button type="submit">
+                                Mark as Read ✓
+                            </button>
+
+                        </form>
+
+                    {% else %}
+
+                        <span class="read-status">
+                            ✓ Read
+                        </span>
+
+                    {% endif %}
+
+                    <!-- Delete notification -->
+
+                    <form
+                        method="POST"
+                        action="{% url 'delete_notification' notification.id %}"
+                        onsubmit="return confirm('Are you sure you want to delete this notification?');"
+                    >
+
+                        {% csrf_token %}
+
+                        <button
+                            type="submit"
+                            class="delete-notification-button"
+                        >
+                            🗑 Delete
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        {% empty %}
+
+            <div class="notification-card empty-notifications">
+
+                <h3>
+                    {% if notification_filter == "unread" %}
+                        No Unread Notifications
+                    {% elif notification_filter == "read" %}
+                        No Read Notifications
+                    {% else %}
+                        No Notifications Yet
+                    {% endif %}
+                </h3>
+
+                <p>
+                    {% if notification_filter == "unread" %}
+                        You're all caught up!
+                    {% elif notification_filter == "read" %}
+                        Your read notifications will appear here.
+                    {% else %}
+                        When someone interacts with your sports events,
+                        your notifications will appear here.
+                    {% endif %}
+                </p>
+
+            </div>
+
+        {% endfor %}
+
+        <a class="back-link" href="{% url 'home' %}">
+            ← Back to Home
+        </a>
+
+    </main>
+
+    <!-- Live notification updates -->
+
+    <script>
+
+        const notificationConfig = document.getElementById(
+            "notification-config"
+        );
+
+        const initialUnreadCount = Number(
+            notificationConfig.dataset.unreadCount
+        );
+
+        const notificationCountUrl =
+            notificationConfig.dataset.countUrl;
+
+        async function checkNewNotifications() {
+
+            try {
+
+                const response = await fetch(notificationCountUrl, {
+                    cache: "no-store"
+                });
+
+                if (!response.ok) return;
+
+                const data = await response.json();
+
+                if (Number(data.unread_count) !== initialUnreadCount) {
+
+                    window.location.reload();
+
+                }
+
+            } catch (error) {
+
+                console.error("Notification update error:", error);
+
+            }
+
+        }
+
+        setInterval(checkNewNotifications, 10000);
+
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,311 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Recommended Events | PlayNear</title>
+
+    <link rel="stylesheet" href="{% static 'events/style.css' %}">
+
+    <style>
+        .recommendation-reasons {
+            background: #f1f8e9;
+            border-left: 4px solid #8bd63b;
+            padding: 14px 16px;
+            margin: 18px 0;
+            border-radius: 8px;
+        }
+
+        .recommendation-reasons h4 {
+            color: #18231d;
+            margin: 0 0 10px;
+        }
+
+        .recommendation-reasons ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .recommendation-reasons li {
+            color: #344435;
+            margin-bottom: 7px;
+            line-height: 1.5;
+        }
+
+        .match-score {
+            display: inline-block;
+            background: #e8f7d7;
+            color: #315b17;
+            padding: 7px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            margin: 8px 0 14px;
+        }
+
+        .nearby-location-section {
+            margin: 25px 0;
+        }
+
+        #locationStatus {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<main class="create-event-page">
+
+    <div class="create-event-container">
+
+        <a href="{% url 'home' %}" class="back-link">
+            ← Back to PlayNear
+        </a>
+
+        <h1>Find Your Perfect Match</h1>
+
+        <p>
+            Discover sports events that match your interests and location.
+        </p>
+
+        <!-- LOCATION SEARCH -->
+
+        <div class="nearby-location-section">
+
+            <h2>Find Sports Near You</h2>
+
+            <p>
+                Use your current location or manually enter a location.
+                Sharing your GPS location is optional.
+            </p>
+
+            <button
+                type="button"
+                id="findNearbyButton"
+                class="btn btn-green"
+            >
+                📍 Find Sports Near Me
+            </button>
+
+            <p id="locationStatus"></p>
+
+        </div>
+
+        <hr>
+
+        <!-- PREFERENCE FORM -->
+
+        <form
+            method="GET"
+            action="{% url 'recommended_events' %}"
+            id="recommendationForm"
+        >
+
+            <label>Choose Your Sport</label>
+
+            <select name="sport">
+
+                <option value="Football" {% if user_sport == "Football" %}selected{% endif %}>
+                    Football
+                </option>
+
+                <option value="Cricket" {% if user_sport == "Cricket" %}selected{% endif %}>
+                    Cricket
+                </option>
+
+                <option value="Basketball" {% if user_sport == "Basketball" %}selected{% endif %}>
+                    Basketball
+                </option>
+
+                <option value="Badminton" {% if user_sport == "Badminton" %}selected{% endif %}>
+                    Badminton
+                </option>
+
+            </select>
+
+            <label>Choose Your Skill Level</label>
+
+            <select name="level">
+
+                <option value="Beginner" {% if user_level == "Beginner" %}selected{% endif %}>
+                    Beginner
+                </option>
+
+                <option value="Intermediate" {% if user_level == "Intermediate" %}selected{% endif %}>
+                    Intermediate
+                </option>
+
+                <option value="Advanced" {% if user_level == "Advanced" %}selected{% endif %}>
+                    Advanced
+                </option>
+
+            </select>
+
+            <label>Your Location (Manual Search)</label>
+
+            <input
+                type="text"
+                name="location"
+                id="manualLocation"
+                placeholder="Example: Kolkata, Salt Lake, Barrackpore"
+                value="{{ user_location }}"
+            >
+
+            <label>How Far Are You Willing to Travel?</label>
+
+            <select name="radius" id="radiusSelect">
+
+                <option value="5" {% if radius == "5" %}selected{% endif %}>
+                    Within 5 km
+                </option>
+
+                <option value="10" {% if radius == "10" %}selected{% endif %}>
+                    Within 10 km
+                </option>
+
+                <option value="20" {% if radius == "20" %}selected{% endif %}>
+                    Within 20 km
+                </option>
+
+                <option value="50" {% if radius == "50" %}selected{% endif %}>
+                    Within 50 km
+                </option>
+
+                <option value="100" {% if radius == "100" %}selected{% endif %}>
+                    Within 100 km
+                </option>
+
+                <option value="all" {% if radius == "all" %}selected{% endif %}>
+                    Any Distance
+                </option>
+
+            </select>
+
+            <input
+                type="hidden"
+                name="latitude"
+                id="playerLatitude"
+                value="{{ user_latitude|default_if_none:'' }}"
+            >
+
+            <input
+                type="hidden"
+                name="longitude"
+                id="playerLongitude"
+                value="{{ user_longitude|default_if_none:'' }}"
+            >
+
+            <button type="submit" class="btn btn-green">
+                Find Recommended Events
+            </button>
+
+        </form>
+
+        <hr>
+
+        <!-- RECOMMENDED EVENTS -->
+
+        <h2>Recommended Events</h2>
+
+        {% for item in recommendations %}
+
+            <div class="request-card">
+
+                <h3>{{ item.event.title }}</h3>
+
+                <p>
+                    <strong>Sport:</strong>
+                    {{ item.event.sport }}
+                </p>
+
+                <p>
+                    <strong>Location:</strong>
+                    {{ item.event.location }}
+                </p>
+
+                <p>
+                    <strong>Date:</strong>
+                    {{ item.event.date|date:"M d, Y - h:i A" }}
+                </p>
+
+                <p>
+                    <strong>Skill Level:</strong>
+                    {{ item.event.level }}
+                </p>
+
+                <p>
+                    <strong>Players Remaining:</strong>
+                    {{ item.event.players_remaining }}
+                </p>
+
+                {% if item.distance != None %}
+
+                    <p>
+                        <strong>Distance from you:</strong>
+                        {{ item.distance }} km
+                    </p>
+
+                {% endif %}
+
+                <div class="match-score">
+                    ⭐ Match Score: {{ item.score }}
+                </div>
+
+                <!-- WHY THIS EVENT IS RECOMMENDED -->
+
+                <div class="recommendation-reasons">
+
+                    <h4>💡 Why this event?</h4>
+
+                    {% if item.reasons %}
+
+                        <ul>
+
+                            {% for reason in item.reasons %}
+
+                                <li>{{ reason }}</li>
+
+                            {% endfor %}
+
+                        </ul>
+
+                    {% else %}
+
+                        <p>
+                            This event matches your available recommendations.
+                        </p>
+
+                    {% endif %}
+
+                </div>
+
+                <a
+                    href="{% url 'event_detail' item.event.id %}"
+                    class="join-link"
+                >
+                    View Event →
+                </a>
+
+            </div>
+
+        {% empty %}
+
+            <p>
+                No matching events found.
+                Try increasing your travel distance or changing your preferences.
+            </p>
+
+        {% endfor %}
+
+    </div>
+
+</main>
+
+<script src="{% static 'events/location.js' %}"></script>
+
+</body>
+</html>

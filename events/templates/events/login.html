@@ -1,0 +1,41 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | PlayNear</title>
+    <link rel="stylesheet" href="{% static 'events/style.css' %}">
+</head>
+<body>
+
+    <section class="search-section">
+        <div class="centered-heading">
+            <h2>Welcome back!</h2>
+            <p>Log in to find your next game.</p>
+        </div>
+
+
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+
+            <button type="submit" class="search-button">
+            Log In
+            </button>
+        </form>
+
+
+        <p>
+            Don't have an account?
+            <a href="{% url 'register' %}">Create one</a>
+        </p>
+
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    </section>
+
+</body>
+</html>

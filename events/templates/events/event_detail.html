@@ -1,0 +1,481 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{ event.title }} | PlayNear</title>
+
+    <meta name="description" content="View event details and join {{ event.title }} on PlayNear.">
+
+    <link rel="stylesheet" href="{% static 'events/style.css' %}">
+
+    <style>
+        .event-detail-page {
+            max-width: 850px;
+            margin: 45px auto;
+            padding: 20px;
+        }
+
+        .event-detail-container {
+            background: #ffffff;
+            padding: 35px;
+            border-radius: 18px;
+            border: 1px solid #dce5d6;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .event-detail-container h1 {
+            color: #18231d;
+            margin: 25px 0;
+        }
+
+        .event-detail-container h2 {
+            margin-top: 25px;
+            color: #18231d;
+        }
+
+        .event-detail-container p {
+            line-height: 1.7;
+            color: #455248;
+            margin: 12px 0;
+        }
+
+        .event-detail-container hr {
+            border: 0;
+            border-top: 1px solid #dce5d6;
+            margin: 25px 0;
+        }
+
+        .event-available {
+            color: #27833b !important;
+            font-weight: 700;
+        }
+
+        .event-full {
+            color: #c0392b !important;
+            font-weight: 700;
+        }
+
+        .event-message {
+            background: #e9f7dc;
+            color: #315f25;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 12px 0;
+        }
+
+        .event-status {
+            display: inline-block;
+            padding: 7px 13px;
+            border-radius: 20px;
+            background: #f0f3ed;
+            color: #315f25;
+            font-weight: 600;
+        }
+
+        .event-ended {
+            display: inline-block;
+            padding: 10px 16px;
+            border-radius: 8px;
+            background: #fdeaea;
+            color: #a93226;
+            font-weight: 700;
+            margin: 12px 0;
+        }
+
+        .event-detail-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .event-detail-actions a {
+            text-decoration: none;
+        }
+
+        .back-link {
+            color: #315f25;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Review button */
+
+        .review-event-button {
+            display: inline-block;
+            padding: 13px 22px;
+            background: #18231d;
+            color: #b9f66b !important;
+            border-radius: 10px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .review-event-button:hover {
+            background: #26362c;
+            transform: translateY(-2px);
+        }
+
+        /* Reviews section */
+
+        .review-summary {
+            background: #f0f7e9;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 18px 0;
+        }
+
+        .review-summary h2 {
+            margin: 0;
+            color: #18231d;
+        }
+
+        .review-card {
+            border: 1px solid #dce5d6;
+            padding: 18px;
+            border-radius: 12px;
+            margin: 15px 0;
+            background: #f8faf6;
+        }
+
+        .review-card h3 {
+            color: #18231d;
+            margin-top: 0;
+        }
+
+        .review-stars {
+            color: #d99b00 !important;
+            font-size: 20px;
+            letter-spacing: 2px;
+        }
+
+        .review-date {
+            color: #687568;
+            font-size: 13px;
+        }
+
+        @media (max-width: 600px) {
+            .event-detail-page {
+                margin: 20px auto;
+                padding: 12px;
+            }
+
+            .event-detail-container {
+                padding: 22px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    {% include "events/navbar.html" %}
+
+    <main class="event-detail-page">
+
+        <div class="event-detail-container">
+
+            <a href="{% url 'home' %}" class="back-link">
+                ← Back to PlayNear
+            </a>
+
+            <h1>{{ event.title }}</h1>
+
+            {% if event_expired %}
+                <div class="event-ended">
+                    Event Ended
+                </div>
+            {% endif %}
+
+            <p>
+                <strong>Sport:</strong>
+                {{ event.sport }}
+            </p>
+
+            <p>
+                <strong>Location:</strong>
+                {{ event.location }}
+            </p>
+
+            <p>
+                <strong>Date and Time:</strong>
+                {{ event.date|date:"d M Y, h:i A" }}
+            </p>
+
+            <p>
+                <strong>Skill Level:</strong>
+                {{ event.level }}
+            </p>
+
+            <p>
+                <strong>Organizer:</strong>
+                {{ event.organizer.username }}
+            </p>
+
+            <hr>
+
+            <h2>Player Availability</h2>
+
+            <p>
+                <strong>Players Joined:</strong>
+                {{ event.players_joined }}
+                /
+                {{ event.players_needed }}
+            </p>
+
+            {% if event_expired %}
+
+                <p class="event-full">
+                    This event has already ended.
+                </p>
+
+            {% elif event.players_remaining == 0 %}
+
+                <p class="event-full">
+                    This event is full!
+                </p>
+
+            {% else %}
+
+                <p class="event-available">
+                    {{ event.players_remaining }} slots remaining
+                </p>
+
+            {% endif %}
+
+            <hr>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <p class="event-message">
+                        {{ message }}
+                    </p>
+                {% endfor %}
+            {% endif %}
+
+            <h2>Want to Play?</h2>
+
+            {% if event_expired %}
+
+                <p class="event-ended">
+                    This game has ended. You can no longer join this event.
+                </p>
+
+            {% elif user.is_authenticated %}
+
+                {% if user == event.organizer %}
+
+                    <p class="event-status">
+                        You are the organizer of this event.
+                    </p>
+
+                {% elif user_request %}
+
+                    <p>
+                        Your join request status:
+                        <span class="event-status">
+                            {{ user_request.status }}
+                        </span>
+                    </p>
+
+                    {% if user_request.status == "Pending" %}
+
+                        <p>
+                            Your request is waiting for organizer approval.
+                        </p>
+
+                    {% elif user_request.status == "Approved" %}
+
+                        <p class="event-available">
+                            Your request has been approved!
+                            Get ready to play!
+                        </p>
+
+                    {% elif user_request.status == "Rejected" %}
+
+                        <p class="event-full">
+                            Your request was rejected.
+                        </p>
+
+                    {% endif %}
+
+                {% elif event.players_remaining == 0 %}
+
+                    <p class="event-full">
+                        Sorry, this event is already full.
+                    </p>
+
+                {% else %}
+
+                    <p>
+                        Interested in joining this game?
+                        Send a request to the event organizer.
+                    </p>
+
+                    <form method="POST" action="{% url 'join_event' event.id %}">
+                        {% csrf_token %}
+
+                        <button type="submit" class="btn btn-green">
+                            Join Event
+                        </button>
+                    </form>
+
+                {% endif %}
+
+            {% else %}
+
+                <p>
+                    Please
+                    <a href="{% url 'login' %}">log in</a>
+                    to request to join this event.
+                </p>
+
+                <div class="event-detail-actions">
+
+                    <a href="{% url 'register' %}" class="btn btn-green">
+                        Create Account
+                    </a>
+
+                    <a href="{% url 'login' %}" class="back-link">
+                        Already registered? Login
+                    </a>
+
+                </div>
+
+            {% endif %}
+
+            <!-- Event review button -->
+
+            {% if user.is_authenticated and event_expired %}
+
+                {% if user_request and user_request.status == "Approved" %}
+
+                    <hr>
+
+                    <h2>⭐ How Was Your Experience?</h2>
+
+                    <p>
+                        Your feedback helps other players discover great games.
+                    </p>
+
+                    <a href="{% url 'review_event' event.id %}"
+                       class="review-event-button">
+                        ⭐ Write a Review
+                    </a>
+
+                {% endif %}
+
+            {% endif %}
+
+            <!-- Player reviews and ratings -->
+
+            <hr>
+
+            <h2>⭐ Player Reviews</h2>
+
+            {% if average_rating %}
+
+                <div class="review-summary">
+
+                    <h2>
+                        ⭐ {{ average_rating|floatformat:1 }} / 5
+                    </h2>
+
+                    <p style="margin-bottom: 0;">
+                        Based on {{ review_count }}
+                        player review{{ review_count|pluralize }}
+                    </p>
+
+                </div>
+
+            {% else %}
+
+                <p>
+                    No reviews yet. Be the first to share your experience!
+                </p>
+
+            {% endif %}
+
+            {% if reviews %}
+
+                {% for review in reviews %}
+
+                    <div class="review-card">
+
+                        <h3>
+                            {{ review.player.username }}
+                        </h3>
+
+                        <p class="review-stars">
+
+                            {% for star in "12345" %}
+
+                                {% if forloop.counter <= review.rating %}
+                                    ⭐
+                                {% else %}
+                                    ☆
+                                {% endif %}
+
+                            {% endfor %}
+
+                        </p>
+
+                        {% if review.comment %}
+
+                            <p>
+                                {{ review.comment }}
+                            </p>
+
+                        {% else %}
+
+                            <p>
+                                No written comment.
+                            </p>
+
+                        {% endif %}
+
+                        <small class="review-date">
+                            {{ review.created_at|date:"d M Y" }}
+                        </small>
+
+                    </div>
+
+                {% endfor %}
+
+            {% endif %}
+
+            <hr>
+
+            <div class="event-detail-actions">
+
+                <a href="{% url 'home' %}" class="back-link">
+                    Explore More Games →
+                </a>
+
+                {% if user.is_authenticated and user == event.organizer %}
+
+                    <a href="{% url 'organizer_dashboard' %}" class="back-link">
+                        Organizer Dashboard →
+                    </a>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </main>
+
+</body>
+</html>

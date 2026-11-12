@@ -1,0 +1,210 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Find Players | PlayNear</title>
+
+    <link rel="stylesheet" href="{% static 'events/style.css' %}">
+
+    <style>
+        .players-page {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 20px;
+            color: #f8faf6;
+        }
+
+        .players-heading {
+            margin-bottom: 30px;
+        }
+
+        .players-heading h1 {
+            color: #b9f66b;
+            font-size: 32px;
+        }
+
+        .players-heading p {
+            color: #cbd5cc;
+        }
+
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 20px;
+        }
+
+        .player-card {
+            background: #18231d;
+            border: 1px solid #35483b;
+            border-radius: 16px;
+            padding: 24px;
+            transition: 0.2s;
+            text-align: center;
+        }
+
+        .player-card:hover {
+            transform: translateY(-4px);
+            border-color: #b9f66b;
+        }
+
+        /* Player avatar */
+        .player-avatar {
+            width: 85px;
+            height: 85px;
+            border-radius: 50%;
+            background: #b9f66b;
+            color: #18231d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: bold;
+            overflow: hidden;
+            margin: 0 auto 18px;
+            border: 3px solid #b9f66b;
+        }
+
+        /* Uploaded profile photo */
+        .player-avatar-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            border-radius: 50%;
+        }
+
+        .player-card h3 {
+            color: #b9f66b;
+            margin: 0 0 8px;
+            overflow-wrap: anywhere;
+        }
+
+        .player-city {
+            color: #cbd5cc;
+            margin-bottom: 18px;
+        }
+
+        .view-profile {
+            display: inline-block;
+            padding: 10px 16px;
+            border-radius: 8px;
+            background: #b9f66b;
+            color: #18231d;
+            text-decoration: none;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .view-profile:hover {
+            background: #8bd63b;
+        }
+
+        .empty-players {
+            background: #18231d;
+            border: 1px solid #35483b;
+            padding: 25px;
+            border-radius: 12px;
+            color: #cbd5cc;
+        }
+
+        @media (max-width: 600px) {
+            .players-page {
+                margin: 20px auto;
+                padding: 15px;
+            }
+
+            .players-heading h1 {
+                font-size: 26px;
+            }
+
+            .players-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .player-card {
+                padding: 22px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+{% include "events/navbar.html" %}
+
+<main class="players-page">
+
+    <div class="players-heading">
+        <h1>Find Your Players 🏟️</h1>
+        <p>
+            Meet sports enthusiasts, discover new teammates
+            and grow your local sports community.
+        </p>
+    </div>
+
+    {% if players %}
+
+        <div class="players-grid">
+
+            {% for player in players %}
+
+                <div class="player-card">
+
+                    <div class="player-avatar">
+
+                        {% if player.profile_photo %}
+
+                            <img
+                                src="{{ player.profile_photo.url }}"
+                                alt="{{ player.user.username }}'s profile photo"
+                                class="player-avatar-image"
+                            >
+
+                        {% else %}
+
+                            {{ player.user.username|first|upper }}
+
+                        {% endif %}
+
+                    </div>
+
+                    <h3>{{ player.user.username }}</h3>
+
+                    <p class="player-city">
+                        📍 {{ player.city|default:"Location not added" }}
+                    </p>
+
+                    <a
+                        href="{% url 'public_player_profile' player.user.username %}"
+                        class="view-profile"
+                    >
+                        View Profile
+                    </a>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <div class="empty-players">
+            <h3>No player profiles yet.</h3>
+            <p>Be the first to complete your PlayNear profile!</p>
+
+            <a href="{% url 'my_profile' %}" class="view-profile">
+                Create My Profile
+            </a>
+        </div>
+
+    {% endif %}
+
+</main>
+
+</body>
+</html>

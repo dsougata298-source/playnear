@@ -1,0 +1,214 @@
+
+<header class="navbar">
+    <div class="nav-container">
+
+        <a href="{% url 'home' %}" class="logo">
+            PlayNear<span>.</span>
+        </a>
+
+        <button
+            class="mobile-menu-toggle"
+            id="mobileMenuToggle"
+            type="button"
+            aria-label="Toggle navigation menu"
+            aria-expanded="false"
+            aria-controls="navLinks"
+        >
+            ☰
+        </button>
+
+        <nav class="nav-links" id="navLinks">
+
+            <a href="{% url 'home' %}#find-games">
+                Find Games
+            </a>
+
+            {% if user.is_authenticated %}
+
+                <a href="{% url 'recommended_events' %}">
+                    Recommended Events
+                </a>
+
+                <a href="{% url 'my_preferences' %}">
+                    My Preferences
+                </a>
+
+            {% endif %}
+
+            <a href="{% url 'home' %}#how-it-works">
+                How It Works
+            </a>
+
+            <a href="{% url 'create_event' %}">
+                Create Event
+            </a>
+
+            {% if user.is_authenticated %}
+
+                <a href="{% url 'organizer_dashboard' %}">
+                    Organizer Dashboard
+                </a>
+
+                <a href="{% url 'my_events' %}">
+                    My Events
+                </a>
+
+                <a href="{% url 'activity_dashboard' %}">
+                    My Activity
+                </a>
+
+                <a href="{% url 'my_profile' %}">
+                    My Profile
+                </a>
+
+                <!-- MESSAGES LINK -->
+                <a href="{% url 'messages_inbox' %}" class="notification-link">
+
+                    <span>💬 Messages</span>
+
+                    <span
+                        class="notification-badge"
+                        id="unreadMessageBadge"
+                        style="display: none;"
+                    >
+                        0
+                    </span>
+                </a>
+
+                <a href="{% url 'notifications' %}" class="notification-link">
+
+                    <span>🔔 Notifications</span>
+
+                    <span
+                        class="notification-badge"
+                        id="notificationBadge"
+                        {% if unread_notifications_count == 0 %}
+                            style="display: none;"
+                        {% endif %}
+                    >
+                        {{ unread_notifications_count }}
+                    </span>
+
+                </a>
+
+                <span class="welcome-user">
+                    Hello, {{ user.username }}
+                </span>
+
+                <form method="POST" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="nav-login">
+                        Logout
+                    </button>
+                </form>
+
+            {% else %}
+
+                <a href="{% url 'login' %}" class="nav-login">
+                    Login
+                </a>
+
+                <a href="{% url 'register' %}" class="btn btn-green">
+                    Join PlayNear
+                </a>
+
+            {% endif %}
+
+        </nav>
+
+    </div>
+</header>
+
+{% if user.is_authenticated %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    function updateNotificationCount() {
+
+        fetch("{% url 'unread_notification_count' %}")
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Could not fetch notification count");
+                }
+                return response.json();
+            })
+            .then(data => {
+                const badge = document.getElementById("notificationBadge");
+
+                if (!badge) return;
+
+                badge.textContent = data.unread_count;
+                badge.style.display = data.unread_count > 0
+                    ? "inline-flex"
+                    : "none";
+            })
+            .catch(error => {
+                console.error("Notification update error:", error);
+            });
+    }
+
+    updateNotificationCount();
+    setInterval(updateNotificationCount, 10000);
+
+});
+
+// Update unread message count
+function updateUnreadMessageCount() {
+
+    fetch("{% url 'unread_message_count' %}")
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Could not fetch unread message count");
+            }
+            return response.json();
+        })
+        .then(data => {
+
+            const badge = document.getElementById("unreadMessageBadge");
+
+            if (!badge) return;
+
+            badge.textContent = data.unread_count;
+
+            badge.style.display = data.unread_count > 0
+                ? "inline-flex"
+                : "none";
+
+        })
+        .catch(error => {
+            console.error("Message count error:", error);
+        });
+}
+
+updateUnreadMessageCount();
+
+setInterval(updateUnreadMessageCount, 5000);
+
+</script>
+{% endif %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const menuButton = document.getElementById("mobileMenuToggle");
+    const navLinks = document.getElementById("navLinks");
+
+    if (menuButton && navLinks) {
+
+        menuButton.addEventListener("click", function () {
+
+            const isOpen = navLinks.classList.toggle("active");
+
+            menuButton.setAttribute(
+                "aria-expanded",
+                isOpen ? "true" : "false"
+            );
+
+            menuButton.textContent = isOpen ? "✕" : "☰";
+
+        });
+
+    }
+
+});
+</script>

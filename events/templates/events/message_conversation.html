@@ -1,0 +1,306 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Chat with {{ other_user.username }} | PlayNear</title>
+
+    <link rel="stylesheet" href="{% static 'events/style.css' %}">
+
+    <style>
+        .chat-page {
+            max-width: 750px;
+            margin: 30px auto;
+            padding: 20px;
+            color: #f8faf6;
+        }
+
+        .chat-page h1 {
+            color: #b9f66b;
+        }
+
+        .chat-box {
+            background: #26362c;
+            border: 1px solid #526657;
+            border-radius: 12px;
+            padding: 18px;
+            min-height: 300px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .chat-message {
+            padding: 12px;
+            margin: 12px 0;
+            border-radius: 10px;
+            background: #18231d;
+            max-width: 80%;
+            overflow-wrap: anywhere;
+        }
+
+        .mine {
+            margin-left: auto;
+            border: 1px solid #b9f66b;
+        }
+
+        .theirs {
+            margin-right: auto;
+            border: 1px solid #526657;
+        }
+
+        .chat-message strong {
+            color: #b9f66b;
+        }
+
+        .chat-message small {
+            color: #cbd5cc;
+        }
+
+        .chat-form textarea {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 14px;
+            margin-top: 15px;
+            border-radius: 9px;
+            background: #26362c;
+            color: #fff;
+            border: 1px solid #526657;
+            resize: vertical;
+            font: inherit;
+        }
+
+        .chat-form button {
+            margin-top: 10px;
+            padding: 12px 22px;
+            background: #b9f66b;
+            color: #18231d;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .chat-form button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .chat-status {
+            color: #cbd5cc;
+            font-size: 13px;
+            margin-top: 8px;
+            min-height: 18px;
+        }
+
+        .chat-back {
+            display: inline-block;
+            margin-top: 20px;
+            color: #b9f66b;
+            text-decoration: none;
+        }
+
+        @media (max-width: 600px) {
+            .chat-page {
+                margin: 15px auto;
+                padding: 12px;
+            }
+
+            .chat-box {
+                min-height: 300px;
+                max-height: 60vh;
+                padding: 12px;
+            }
+
+            .chat-message {
+                max-width: 90%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+{% include "events/navbar.html" %}
+
+<main class="chat-page">
+
+    <h1>Chat with {{ other_user.username }}</h1>
+
+    <div class="chat-box" id="chatBox" aria-live="polite">
+
+        {% for message in conversation %}
+
+            <div class="chat-message {% if message.sender == request.user %}mine{% else %}theirs{% endif %}">
+
+                <strong>
+                    {% if message.sender == request.user %}
+                        You
+                    {% else %}
+                        {{ message.sender.username }}
+                    {% endif %}
+                </strong>
+
+                <p>{{ message.body|linebreaksbr }}</p>
+
+                <small>
+                    {{ message.created_at|date:"d M Y, h:i A" }}
+                </small>
+
+            </div>
+
+        {% empty %}
+
+            <p>No messages yet. Say hello!</p>
+
+        {% endfor %}
+
+    </div>
+
+    <form method="POST" class="chat-form" id="chatForm">
+        {% csrf_token %}
+
+        <textarea
+            name="body"
+            id="messageInput"
+            rows="3"
+            maxlength="2000"
+            placeholder="Write your message..."
+            required
+        ></textarea>
+
+        <button type="submit" id="sendButton">
+            Send Message
+        </button>
+
+        <div class="chat-status" id="chatStatus"></div>
+    </form>
+
+    <a class="chat-back" href="{% url 'messages_inbox' %}">
+        ← Back to Messages
+    </a>
+
+</main>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const chatBox = document.getElementById("chatBox");
+    const chatForm = document.getElementById("chatForm");
+    const messageInput = document.getElementById("messageInput");
+    const sendButton = document.getElementById("sendButton");
+    const chatStatus = document.getElementById("chatStatus");
+
+    const chatUrl = window.location.href;
+
+    // Scroll to the latest message.
+    function scrollToBottom() {
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    scrollToBottom();
+
+    // Refresh only the chat content, not the whole page.
+    async function updateMessages() {
+
+        const nearBottom =
+            chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight < 100;
+
+        try {
+            const response = await fetch(chatUrl, {
+                method: "GET",
+                cache: "no-store",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            });
+
+            if (!response.ok) return;
+
+            const html = await response.text();
+            const parser = new DOMParser();
+            const documentFromServer = parser.parseFromString(html, "text/html");
+
+            const updatedChatBox =
+                documentFromServer.getElementById("chatBox");
+
+            if (updatedChatBox) {
+
+                const oldContent = chatBox.innerHTML;
+                const newContent = updatedChatBox.innerHTML;
+
+                if (oldContent !== newContent) {
+                    chatBox.innerHTML = newContent;
+
+                    if (nearBottom) {
+                        scrollToBottom();
+                    }
+                }
+            }
+
+        } catch (error) {
+            console.error("Could not update messages:", error);
+        }
+    }
+
+    // Send a message without refreshing the page.
+    chatForm.addEventListener("submit", async function (event) {
+
+        event.preventDefault();
+
+        const body = messageInput.value.trim();
+
+        if (!body) {
+            chatStatus.textContent = "Please write a message first.";
+            return;
+        }
+
+        sendButton.disabled = true;
+        chatStatus.textContent = "Sending...";
+
+        try {
+
+            const formData = new FormData(chatForm);
+
+            const response = await fetch(chatUrl, {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error("Message could not be sent.");
+            }
+
+            messageInput.value = "";
+            await updateMessages();
+
+            chatStatus.textContent = "Message sent!";
+
+        } catch (error) {
+
+            chatStatus.textContent =
+                "Could not send your message. Please try again.";
+
+            console.error(error);
+
+        } finally {
+
+            sendButton.disabled = false;
+
+        }
+
+    });
+
+    // Check for incoming messages every 3 seconds.
+    setInterval(updateMessages, 3000);
+
+});
+</script>
+
+</body>
+</html>

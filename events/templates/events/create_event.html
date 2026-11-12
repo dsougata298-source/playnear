@@ -1,0 +1,370 @@
+
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Create Event | PlayNear</title>
+
+    <link rel="stylesheet" href="{% static 'events/style.css' %}">
+
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+
+    <style>
+        #eventMap {
+            height: 400px;
+            width: 100%;
+            margin-top: 15px;
+            border-radius: 12px;
+            z-index: 1;
+        }
+
+        .map-section {
+            margin: 20px 0;
+        }
+
+        .map-search {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .map-search input {
+            flex: 1;
+            min-width: 180px;
+        }
+
+        #mapStatus {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<main class="create-event-page">
+    <div class="create-event-container">
+
+        <a href="{% url 'home' %}" class="back-link">
+            ← Back to PlayNear
+        </a>
+
+        <h1>Create a Sports Event</h1>
+
+        <p>
+            Find players nearby and organize your next game.
+        </p>
+
+        <form method="POST" class="create-event-form" id="createEventForm">
+
+            {% csrf_token %}
+
+            {{ form.as_p }}
+
+            <div class="map-section">
+
+                <h2>Select Event Location</h2>
+
+                <p>
+                    Search for an address or click anywhere on the map.
+                    The Location field will be filled automatically.
+                </p>
+
+                <div class="map-search">
+
+                    <input
+                        type="text"
+                        id="mapSearchInput"
+                        placeholder="Example: Salt Lake, Kolkata"
+                    >
+
+                    <button
+                        type="button"
+                        id="searchMapButton"
+                        class="btn btn-green"
+                    >
+                        Search Location
+                    </button>
+
+                </div>
+
+                <div id="eventMap"></div>
+
+                <p id="mapStatus">
+                    Search for a location or click on the map to select it.
+                </p>
+
+            </div>
+
+            <button type="submit" class="btn btn-green">
+                Publish Event
+            </button>
+
+        </form>
+
+    </div>
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const latitudeField = document.getElementById("id_latitude");
+    const longitudeField = document.getElementById("id_longitude");
+    const locationField = document.getElementById("id_location");
+
+    const searchInput = document.getElementById("mapSearchInput");
+    const searchButton = document.getElementById("searchMapButton");
+    const mapStatus = document.getElementById("mapStatus");
+    const eventForm = document.getElementById("createEventForm");
+
+    if (!latitudeField || !longitudeField || !locationField) {
+        console.error("Location or coordinate form fields were not found.");
+        mapStatus.textContent =
+            "There is a problem loading the location fields. Please check the form.";
+        return;
+    }
+
+    // Default map view: Kolkata
+    const map = L.map("eventMap").setView([22.5726, 88.3639], 11);
+
+    L.tileLayer("https://tile.openstreetmap.de/{z}/{x}/{y}.png", {
+        attribution: '&copy; OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
+
+    let marker = null;
+    let addressRequestNumber = 0;
+
+    // Convert map coordinates into a readable address.
+    async function getAddress(latitude, longitude) {
+
+        const currentRequest = ++addressRequestNumber;
+
+        mapStatus.textContent = "Finding the selected address...";
+
+        try {
+
+            const url =
+                "https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat="
+                + encodeURIComponent(latitude)
+                + "&lon="
+                + encodeURIComponent(longitude)
+                + "&zoom=18&addressdetails=1";
+
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error("Address lookup failed.");
+            }
+
+            const result = await response.json();
+
+            // Ignore an older response if another location was selected.
+            if (currentRequest !== addressRequestNumber) {
+                return;
+            }
+
+            if (result.display_name) {
+
+                locationField.value = result.display_name;
+                searchInput.value = result.display_name;
+
+                mapStatus.textContent =
+                    "Location selected: " + result.display_name;
+
+            } else {
+
+                mapStatus.textContent =
+                    "Coordinates saved, but no address was found. Please enter the location manually.";
+
+            }
+
+        } catch (error) {
+
+            if (currentRequest === addressRequestNumber) {
+
+                mapStatus.textContent =
+                    "Coordinates saved, but the address could not be found. Please enter it manually.";
+
+            }
+
+            console.error("Reverse geocoding error:", error);
+
+        }
+    }
+
+    // Select a location and update the marker.
+    function selectEventLocation(latitude, longitude, address = "") {
+
+        latitudeField.value = latitude;
+        longitudeField.value = longitude;
+
+        if (marker) {
+
+            marker.setLatLng([latitude, longitude]);
+
+        } else {
+
+            marker = L.marker(
+                [latitude, longitude],
+                { draggable: true }
+            ).addTo(map);
+
+            // Update location when the marker is dragged.
+            marker.on("dragend", function () {
+
+                const position = marker.getLatLng();
+
+                selectEventLocation(
+                    position.lat,
+                    position.lng
+                );
+
+            });
+
+        }
+
+        map.setView([latitude, longitude], 16);
+
+        if (address) {
+
+            // Address already provided by location search.
+            addressRequestNumber++;
+
+            locationField.value = address;
+            searchInput.value = address;
+
+            mapStatus.textContent =
+                "Location selected: " + address;
+
+        } else {
+
+            // Automatically find the address from map coordinates.
+            getAddress(latitude, longitude);
+
+        }
+    }
+
+    // Click on the map to select a location.
+    map.on("click", function (event) {
+
+        selectEventLocation(
+            event.latlng.lat,
+            event.latlng.lng
+        );
+
+    });
+
+    // Search for a location.
+    searchButton.addEventListener("click", async function () {
+
+        const query = searchInput.value.trim();
+
+        if (!query) {
+
+            mapStatus.textContent =
+                "Please enter an address first.";
+
+            return;
+        }
+
+        mapStatus.textContent = "Searching for location...";
+        searchButton.disabled = true;
+
+        try {
+
+            const url =
+                "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q="
+                + encodeURIComponent(query);
+
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error("Location search failed.");
+            }
+
+            const results = await response.json();
+
+            if (results.length === 0) {
+
+                mapStatus.textContent =
+                    "Location not found. Try a more detailed address.";
+
+                return;
+            }
+
+            const result = results[0];
+
+            selectEventLocation(
+                parseFloat(result.lat),
+                parseFloat(result.lon),
+                result.display_name
+            );
+
+        } catch (error) {
+
+            mapStatus.textContent =
+                "Could not search for this address. Please try again.";
+
+            console.error(error);
+
+        } finally {
+
+            searchButton.disabled = false;
+
+        }
+
+    });
+
+    // Allow pressing Enter to search.
+    searchInput.addEventListener("keydown", function (event) {
+
+        if (event.key === "Enter") {
+            event.preventDefault();
+            searchButton.click();
+        }
+
+    });
+
+    // Make sure an event has a selected location before publishing.
+    eventForm.addEventListener("submit", function (event) {
+
+        if (
+            !latitudeField.value ||
+            !longitudeField.value ||
+            !locationField.value.trim()
+        ) {
+
+            event.preventDefault();
+
+            mapStatus.textContent =
+                "Please select a map location and make sure its address is filled in.";
+
+            mapStatus.scrollIntoView({
+                behavior: "smooth",
+                block: "center"
+            });
+
+        }
+
+    });
+
+    // Refresh map dimensions.
+    setTimeout(function () {
+        map.invalidateSize();
+    }, 200);
+
+});
+</script>
+
+</body>
+</html>

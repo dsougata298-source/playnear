@@ -1,0 +1,414 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Organizer Dashboard | PlayNear</title>
+
+    <link rel="stylesheet" href="{% static 'events/style.css' %}">
+
+    <style>
+        .dashboard-page {
+            max-width: 1100px;
+            margin: 45px auto;
+            padding: 20px;
+            color: #18231d;
+        }
+
+        .dashboard-heading {
+            margin: 25px 0;
+        }
+
+        .dashboard-heading h1 {
+            margin-bottom: 10px;
+        }
+
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 18px;
+            margin: 25px 0;
+        }
+
+        .stat-card {
+            background: #ffffff;
+            padding: 22px;
+            border-radius: 14px;
+            border: 1px solid #dce5d6;
+            text-align: center;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.04);
+        }
+
+        .stat-card h3 {
+            font-size: 30px;
+            color: #315f25;
+            margin: 0 0 8px;
+        }
+
+        .stat-card p {
+            margin: 0;
+        }
+
+        .request-card {
+            background: #ffffff;
+            padding: 24px;
+            margin: 20px 0;
+            border: 1px solid #dce5d6;
+            border-radius: 14px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.04);
+        }
+
+        .request-card h3 {
+            margin-top: 0;
+        }
+
+        .request-card p {
+            margin: 12px 0;
+        }
+
+        .request-pending {
+            color: #a66b00;
+            font-weight: bold;
+        }
+
+        .request-approved {
+            color: #27833b;
+            font-weight: bold;
+        }
+
+        .request-rejected {
+            color: #c0392b;
+            font-weight: bold;
+        }
+
+        .request-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .request-actions form {
+            margin: 0;
+        }
+
+        .btn-approve {
+            background: #315f25;
+            color: #ffffff;
+            border: none;
+            padding: 11px 22px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-approve:hover {
+            background: #24471b;
+        }
+
+        .btn-red {
+            background: #c0392b;
+            color: #ffffff;
+            border: none;
+            padding: 11px 22px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-red:hover {
+            background: #962d22;
+        }
+
+        .empty-events {
+            background: #ffffff;
+            padding: 35px;
+            border-radius: 14px;
+            text-align: center;
+            border: 1px solid #dce5d6;
+            margin: 25px 0;
+        }
+
+        .dashboard-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 18px;
+            margin-top: 30px;
+        }
+
+        .dashboard-footer .back-link {
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        @media (max-width: 600px) {
+            .dashboard-page {
+                margin: 20px auto;
+                padding: 14px;
+            }
+
+            .request-card {
+                padding: 18px;
+            }
+
+            .dashboard-footer {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SHARED NAVIGATION -->
+    {% include "events/navbar.html" %}
+
+    <!-- MAIN DASHBOARD -->
+    <main class="dashboard-page">
+
+        <div class="dashboard-heading">
+
+            <h1>Organizer Dashboard</h1>
+
+            <p>
+                Welcome, {{ request.user.username }}!
+                Manage your sports events and player requests here.
+            </p>
+
+        </div>
+
+        <!-- DJANGO MESSAGES -->
+        {% if messages %}
+
+            {% for message in messages %}
+
+                <p class="event-message">
+                    {{ message }}
+                </p>
+
+            {% endfor %}
+
+        {% endif %}
+
+        <hr>
+
+        <!-- DASHBOARD STATISTICS -->
+        <h2>Dashboard Overview</h2>
+
+        <div class="dashboard-stats">
+
+            <div class="stat-card">
+                <h3>{{ total_events }}</h3>
+                <p>Total Events</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>{{ total_requests }}</h3>
+                <p>Total Requests</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>{{ pending_requests }}</h3>
+                <p>Pending Requests</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>{{ approved_requests }}</h3>
+                <p>Approved Requests</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>{{ rejected_requests }}</h3>
+                <p>Rejected Requests</p>
+            </div>
+
+        </div>
+
+        <hr>
+
+        <!-- PLAYER REQUESTS -->
+        <h2>Player Join Requests</h2>
+
+        <p>
+            Review requests from players who want to join your events.
+        </p>
+
+        {% for join_request in join_requests %}
+
+            <div class="request-card">
+
+                <!-- EVENT TITLE -->
+                <h3>
+                    {{ join_request.event.title }}
+                </h3>
+
+                <!-- PLAYER INFORMATION -->
+                <p>
+                    <strong>Player:</strong>
+                    {{ join_request.player.username }}
+                </p>
+
+                <p>
+                    <strong>Sport:</strong>
+                    {{ join_request.event.sport }}
+                </p>
+
+                <p>
+                    <strong>Location:</strong>
+                    {{ join_request.event.location }}
+                </p>
+
+                <p>
+                    <strong>Event Date:</strong>
+                    {{ join_request.event.date|date:"d M Y, h:i A" }}
+                </p>
+
+                <!-- PLAYER CAPACITY -->
+                <p>
+                    <strong>Players Joined:</strong>
+                    {{ join_request.event.players_joined }}
+                    /
+                    {{ join_request.event.players_needed }}
+                </p>
+
+                <p>
+                    <strong>Available Spots:</strong>
+                    {{ join_request.event.players_remaining }}
+                </p>
+
+                <!-- REQUEST STATUS -->
+                <p>
+                    <strong>Request Status:</strong>
+
+                    {% if join_request.status == "Pending" %}
+
+                        <span class="request-pending">
+                            Pending
+                        </span>
+
+                    {% elif join_request.status == "Approved" %}
+
+                        <span class="request-approved">
+                            Approved
+                        </span>
+
+                    {% elif join_request.status == "Rejected" %}
+
+                        <span class="request-rejected">
+                            Rejected
+                        </span>
+
+                    {% endif %}
+
+                </p>
+
+                <!-- REQUEST DATE -->
+                <p>
+                    <strong>Requested On:</strong>
+                    {{ join_request.created_at|date:"d M Y, h:i A" }}
+                </p>
+
+                <!-- APPROVE AND REJECT BUTTONS -->
+                {% if join_request.status == "Pending" %}
+
+                    <div class="request-actions">
+
+                        <!-- APPROVE BUTTON -->
+                        <form
+                            method="POST"
+                            action="{% url 'update_join_request' join_request.id %}"
+                        >
+
+                            {% csrf_token %}
+
+                            <button
+                                type="submit"
+                                name="action"
+                                value="approve"
+                                class="btn-approve"
+                            >
+                                Approve
+                            </button>
+
+                        </form>
+
+                        <!-- REJECT BUTTON -->
+                        <form
+                            method="POST"
+                            action="{% url 'update_join_request' join_request.id %}"
+                        >
+
+                            {% csrf_token %}
+
+                            <button
+                                type="submit"
+                                name="action"
+                                value="reject"
+                                class="btn-red"
+                            >
+                                Reject
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                {% else %}
+
+                    <p>
+                        This request has already been processed.
+                    </p>
+
+                {% endif %}
+
+            </div>
+
+        {% empty %}
+
+            <!-- EMPTY STATE -->
+            <div class="empty-events">
+
+                <h3>No Player Requests Yet</h3>
+
+                <p>
+                    When players request to join your events,
+                    their requests will appear here.
+                </p>
+
+                <a
+                    href="{% url 'create_event' %}"
+                    class="btn btn-green"
+                >
+                    Create New Event
+                </a>
+
+            </div>
+
+        {% endfor %}
+
+        <hr>
+
+        <!-- DASHBOARD FOOTER -->
+        <div class="dashboard-footer">
+
+            <a href="{% url 'create_event' %}" class="btn btn-green">
+                + Create New Event
+            </a>
+
+            <a href="{% url 'my_events' %}" class="back-link">
+                View My Events →
+            </a>
+
+        </div>
+
+    </main>
+
+</body>
+</html>
