@@ -2,31 +2,38 @@
 import os
 from pathlib import Path
 
+import dj_database_url
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# SECURITY WARNING: keep the secret key used in production secret!
-# IMPORTANT: Copy your EXISTING SECRET_KEY line here.
+# Security settings
+
 SECRET_KEY = os.environ.get(
     "DJANGO_SECRET_KEY",
     "django-insecure-local-development-only"
 )
 
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", "True").lower() == "true"
 
 
 ALLOWED_HOSTS = [
-    "192.168.31.244",
-    "localhost",
-    "127.0.0.1",
-    "visible-casting-hull-waterproof.trycloudflare.com",
+    host.strip()
+    for host in os.environ.get(
+        "ALLOWED_HOSTS",
+        "127.0.0.1,localhost,192.168.31.244,visible-casting-hull-waterproof.trycloudflare.com"
+    ).split(",")
+    if host.strip()
 ]
 
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://visible-casting-hull-waterproof.trycloudflare.com",
+    origin.strip()
+    for origin in os.environ.get(
+        "CSRF_TRUSTED_ORIGINS",
+        "https://visible-casting-hull-waterproof.trycloudflare.com"
+    ).split(",")
+    if origin.strip()
 ]
 
 
@@ -45,6 +52,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -78,13 +86,26 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 
 # Database
+# Use PostgreSQL when DATABASE_URL is configured.
+# Otherwise, use SQLite for local development.
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+if DATABASE_URL:
+    DATABASES = {
+        "default": dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=not DEBUG,
+        )
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 
 # Password validation
@@ -120,6 +141,17 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
 
 # Default primary key field type
 
@@ -129,8 +161,23 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Authentication
 
 LOGIN_URL = "/login/"
+
 LOGIN_REDIRECT_URL = "/accounts/profile/"
 
+
 # Media files (uploaded images and files)
+
 MEDIA_URL = "/media/"
+
 MEDIA_ROOT = BASE_DIR / "media"
+
+
+# Production security
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+SECURE_SSL_REDIRECT = not DEBUG
+
+SESSION_COOKIE_SECURE = not DEBUG
+
+CSRF_COOKIE_SECURE = not DEBUG
